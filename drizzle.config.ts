@@ -4,8 +4,8 @@ import process from "node:process";
 
 dotenv.config({ path: "./packages/bot/.dev.vars" });
 
-if (!process.env.DATABASE_URL) {
-  throw Error("Must provide DATABASE_URL in packages/bot/.dev.vars");
+if (!process.env.WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE) {
+  throw Error("Must provide WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE in packages/bot/.dev.vars");
 }
 
 export default {
@@ -16,6 +16,6 @@ export default {
   out: "./drizzle",
   dialect: "postgresql",
   dbCredentials: {
-    url: process.env.DATABASE_URL,
+    url: process.env.WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE,
   },
 } satisfies Config;

@@ -1,12 +1,11 @@
 import { z } from "zod";
-import { getUserId } from "~/session.server";
-import { LoaderArgs } from "~/util/loader";
+import { getUserId } from "~/.server/session";
 import { randomString } from "~/util/text";
 import { zxParseParams } from "~/util/zod";
 
 export const ZodDonateKeyType = z.literal("btc");
 
-export const action = async ({ request, params, context }: LoaderArgs) => {
+export const action = async ({ request, params, context }: LoaderFunctionArgs) => {
   const { type } = zxParseParams(params, {
     type: ZodDonateKeyType,
   });

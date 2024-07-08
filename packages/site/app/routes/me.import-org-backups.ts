@@ -1,9 +1,8 @@
-import { json, redirect } from "@remix-run/cloudflare";
-import { getUserId } from "~/session.server";
-import { LoaderArgs } from "~/util/loader";
+import { LoaderFunctionArgs, json, redirect } from "@remix-run/cloudflare";
+import { getUserId } from "~/.server/session";
 import { randomString } from "~/util/text";
 
-export const loader = async ({ request, context }: LoaderArgs) => {
+export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   const legacyOrigin = context.env.LEGACY_ORIGIN;
   if (!legacyOrigin) {
     throw json(

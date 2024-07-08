@@ -1,5 +1,11 @@
 import { REST } from "@discordjs/rest";
-import { defer, json, redirect } from "@remix-run/cloudflare";
+import {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  defer,
+  json,
+  redirect,
+} from "@remix-run/cloudflare";
 import { Link, useLoaderData, useSubmit } from "@remix-run/react";
 import {
   APIActionRowComponent,
@@ -17,6 +23,15 @@ import { MouseEventHandler, useEffect, useReducer, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { twJoin } from "tailwind-merge";
 import { z } from "zod";
+import { getUser, verifyToken } from "~/.server/session";
+import {
+  StorableComponent,
+  discordMessageComponents,
+  eq,
+  getDb,
+  makeSnowflake,
+  tokens,
+} from "~/.server/store";
 import { BRoutes, apiUrl } from "~/api/routing";
 import { loader as ApiGetGuildWebhookToken } from "~/api/v1/guilds.$guildId.webhooks.$webhookId.token";
 import { getComponentId } from "~/api/v1/log.webhooks.$webhookId.$webhookToken.messages.$messageId";
@@ -35,15 +50,6 @@ import { Message } from "~/components/preview/Message.client";
 import { ComponentEditForm } from "~/modals/ComponentEditModal";
 import { EditingFlowData, FlowEditModal } from "~/modals/FlowEditModal";
 import { submitMessage } from "~/modals/MessageSendModal";
-import { getUser, verifyToken } from "~/session.server";
-import {
-  StorableComponent,
-  discordMessageComponents,
-  eq,
-  getDb,
-  makeSnowflake,
-  tokens,
-} from "~/store.server";
 import { APIMessageActionRowComponent } from "~/types/QueryData";
 import {
   ResolutionKey,
@@ -52,7 +58,7 @@ import {
   useCache,
 } from "~/util/cache/CacheManager";
 import { cdnImgAttributes } from "~/util/discord";
-import { ActionArgs, LoaderArgs, useSafeFetcher } from "~/util/loader";
+import { useSafeFetcher } from "~/util/loader";
 import { useLocalStorage } from "~/util/localstorage";
 import { getUserAvatar } from "~/util/users";
 import {
@@ -73,12 +79,16 @@ interface KVComponentEditorState {
   column?: number;
 }
 
-export const loader = async ({ request, context, params }: LoaderArgs) => {
+export const loader = async ({
+  request,
+  context,
+  params,
+}: LoaderFunctionArgs) => {
   const { id } = zxParseParams(params, { id: snowflakeAsString() });
   const { token: editorToken } = zxParseQuery(request, {
     token: z.ostring(),
   });
-  const db = getDb(context.env.HYPERDRIVE.connectionString);
+  const db = getDb(context.env.HYPERDRIVE);
 
   const redirectUrl = `/auth/discord?${new URLSearchParams({
     // We're purposely trimming the original request's query because it
@@ -255,7 +265,11 @@ export const loader = async ({ request, context, params }: LoaderArgs) => {
   });
 };
 
-export const action = async ({ request, context, params }: ActionArgs) => {
+export const action = async ({
+  request,
+  context,
+  params,
+}: ActionFunctionArgs) => {
   const { id } = zxParseParams(params, { id: snowflakeAsString() });
   const { token, row, column } = await zxParseForm(request, {
     token: z.ostring(),
@@ -313,7 +327,7 @@ export const action = async ({ request, context, params }: ActionArgs) => {
 
   const user = await getUser(request, context);
 
-  const db = getDb(context.env.HYPERDRIVE.connectionString);
+  const db = getDb(context.env.HYPERDRIVE);
   const component = await db.query.discordMessageComponents.findFirst({
     where: (table, { eq }) => eq(table.id, id),
     columns: {

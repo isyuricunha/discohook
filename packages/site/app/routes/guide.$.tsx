@@ -1,23 +1,22 @@
 import {
-  MetaDescriptor,
-  MetaFunction,
-  SerializeFrom,
-  json,
+    MetaDescriptor,
+    MetaFunction,
+    SerializeFrom,
+    json,
 } from "@remix-run/cloudflare";
 import { useLoaderData, useNavigate } from "@remix-run/react";
 import matter from "front-matter";
 import { useEffect, useState } from "react";
 import { z } from "zod";
+import { getUser } from "~/.server/session";
 import { Header } from "~/components/Header";
 import { Prose } from "~/components/Prose";
 import { Markdown } from "~/components/preview/Markdown";
 import { TabsWindow } from "~/components/tabs";
-import { getUser } from "~/session.server";
 import { useCache } from "~/util/cache/CacheManager";
-import { LoaderArgs } from "~/util/loader";
 import { zxParseParams } from "~/util/zod";
 
-export const loader = async ({ request, context, params }: LoaderArgs) => {
+export const loader = async ({ request, context, params }: LoaderFunctionArgs) => {
   const { "*": path } = zxParseParams(params, {
     "*": z.string().regex(/^[\w\/-]+$/),
   });

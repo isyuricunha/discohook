@@ -1,10 +1,10 @@
-import { json } from "@remix-run/cloudflare";
+import { ActionFunctionArgs, json } from "@remix-run/cloudflare";
 import { ButtonStyle, ComponentType } from "discord-api-types/v10";
 import { PermissionFlags } from "discord-bitflag";
 import {
   authorizeRequest,
   getTokenGuildChannelPermissions,
-} from "~/session.server";
+} from "~/.server/session";
 import {
   StorableComponent,
   discordMessageComponents,
@@ -16,12 +16,15 @@ import {
   getDb,
   inArray,
   sql,
-} from "~/store.server";
+} from "~/.server/store";
 import { ZodAPIMessageActionRowComponent } from "~/types/components";
-import { ActionArgs } from "~/util/loader";
 import { snowflakeAsString, zxParseJson, zxParseParams } from "~/util/zod";
 
-export const action = async ({ request, context, params }: ActionArgs) => {
+export const action = async ({
+  request,
+  context,
+  params,
+}: ActionFunctionArgs) => {
   const { id } = zxParseParams(params, { id: snowflakeAsString() });
   const [token, respond] = await authorizeRequest(request, context);
 
@@ -32,7 +35,7 @@ export const action = async ({ request, context, params }: ActionArgs) => {
         ZodAPIMessageActionRowComponent,
       );
 
-      const db = getDb(context.env.HYPERDRIVE.connectionString);
+      const db = getDb(context.env.HYPERDRIVE);
       const current = await db.query.discordMessageComponents.findFirst({
         where: (table, { eq }) => eq(table.id, id),
         columns: {
@@ -227,7 +230,7 @@ export const action = async ({ request, context, params }: ActionArgs) => {
       return respond(json(updated));
     }
     case "DELETE": {
-      const db = getDb(context.env.HYPERDRIVE.connectionString);
+      const db = getDb(context.env.HYPERDRIVE);
       const current = await db.query.discordMessageComponents.findFirst({
         where: (table, { eq }) => eq(table.id, id),
         columns: {

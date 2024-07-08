@@ -18,8 +18,8 @@ import { WEBHOOK_URL_RE } from "~/util/constants";
 import { cdn, getWebhook } from "~/util/discord";
 import { useSafeFetcher } from "~/util/loader";
 import { randomString } from "~/util/text";
-import type { loader as ApiGetGuildWebhooks } from "../api/v1/guilds.$guildId.webhooks";
-import type { loader as ApiGetGuildWebhookToken } from "../api/v1/guilds.$guildId.webhooks.$webhookId.token";
+import type { loader as ApiGetGuildWebhooks } from "../.server/api/v1/guilds.$guildId.webhooks";
+import type { loader as ApiGetGuildWebhookToken } from "../.server/api/v1/guilds.$guildId.webhooks.$webhookId.token";
 import { Modal, ModalProps } from "./Modal";
 
 export const TargetAddModal = (

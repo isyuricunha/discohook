@@ -1,12 +1,15 @@
-import { json } from "@remix-run/cloudflare";
-import { parseExpression } from "cron-parser";
+import {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  json,
+} from "@remix-run/cloudflare";
+import cronParser from "cron-parser";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { zx } from "zodix";
-import { doubleDecode, getUserId } from "~/session.server";
-import { backups, getDb } from "~/store.server";
+import { doubleDecode, getUserId } from "~/.server/session";
+import { backups, getDb } from "~/.server/store";
 import { QueryData, ZodQueryData } from "~/types/QueryData";
-import { ActionArgs, LoaderArgs } from "~/util/loader";
 import {
   snowflakeAsString,
   zxParseJson,
@@ -15,14 +18,20 @@ import {
 } from "~/util/zod";
 import { findMessagesPreviewImageUrl } from "./backups";
 
-export const loader = async ({ request, params, context }: LoaderArgs) => {
+const { parseExpression } = cronParser;
+
+export const loader = async ({
+  request,
+  params,
+  context,
+}: LoaderFunctionArgs) => {
   const { id } = zxParseParams(params, { id: snowflakeAsString() });
   const { data: returnData } = zxParseQuery(request, {
     data: z.optional(zx.BoolAsString),
   });
   const userId = await getUserId(request, context, true);
 
-  const db = getDb(context.env.HYPERDRIVE.connectionString);
+  const db = getDb(context.env.HYPERDRIVE);
   const backup = await db.query.backups.findFirst({
     where: (backups, { eq }) => eq(backups.id, id),
     columns: {
@@ -72,7 +81,11 @@ const fixZodQueryData = (data: QueryData): QueryData => {
   return data;
 };
 
-export const action = async ({ request, params, context }: ActionArgs) => {
+export const action = async ({
+  request,
+  params,
+  context,
+}: ActionFunctionArgs) => {
   const userId = await getUserId(request, context, true);
   const { id } = zxParseParams(params, { id: snowflakeAsString() });
   const { name, data, scheduleAt, cron, timezone } = await zxParseJson(
@@ -112,7 +125,7 @@ export const action = async ({ request, params, context }: ActionArgs) => {
     },
   );
 
-  const db = getDb(context.env.HYPERDRIVE.connectionString);
+  const db = getDb(context.env.HYPERDRIVE);
   const backup = await db.query.backups.findFirst({
     where: (backups, { eq }) => eq(backups.id, id),
     columns: {

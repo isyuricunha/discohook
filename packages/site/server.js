@@ -1,43 +1,39 @@
 import { getAssetFromKV } from "@cloudflare/kv-asset-handler";
-import type { AppLoadContext } from "@remix-run/cloudflare";
-import { createRequestHandler, json, logDevReady } from "@remix-run/cloudflare";
-import * as build from "@remix-run/dev/server-build";
+import { createRequestHandler } from "@remix-run/cloudflare";
+import * as remixBuild from "./build/server";
+
+// eslint-disable-next-line import/no-unresolved
 import __STATIC_CONTENT_MANIFEST from "__STATIC_CONTENT_MANIFEST";
+
 export { DurableComponentState } from "store";
 export { DurableDraftComponentCleaner } from "./app/durable/draft-components";
 export { DurableScheduler } from "./app/durable/scheduler";
 
-const MANIFEST = JSON.parse(__STATIC_CONTENT_MANIFEST);
-const handleRemixRequest = createRequestHandler(build, process.env.NODE_ENV);
+// export class BasicDurableObject extends DurableObject {
+//   constructor(state, env) {
+//     super();
+//   }
 
-if (process.env.NODE_ENV === "development") {
-  logDevReady(build);
-}
+//   async fetch(request) {
+//     return new Response(undefined, { status: 204 });
+//   }
+// }
+
+const MANIFEST = JSON.parse(__STATIC_CONTENT_MANIFEST);
+const handleRemixRequest = createRequestHandler(remixBuild);
 
 export default {
-  async fetch(
-    request: Request,
-    env: {
-      __STATIC_CONTENT: Fetcher;
-      ENVIRONMENT: "dev" | "production";
-      HYPERDRIVE: Hyperdrive;
-      DATABASE_URL: string;
-    },
-    ctx: ExecutionContext,
-  ): Promise<Response> {
-    if (env.ENVIRONMENT === "dev") {
-      env.HYPERDRIVE = { connectionString: env.DATABASE_URL } as Hyperdrive;
-    }
+  async fetch(request, env, ctx) {
+    const url = new URL(request.url);
     try {
-      const url = new URL(request.url);
-      const ttl = url.pathname.startsWith("/build/")
+      const ttl = url.pathname.startsWith("/assets/")
         ? 60 * 60 * 24 * 365 // 1 year
         : 60 * 5; // 5 minutes
       return await getAssetFromKV(
         {
           request,
           waitUntil: ctx.waitUntil.bind(ctx),
-        } as FetchEvent,
+        },
         {
           ASSET_NAMESPACE: env.__STATIC_CONTENT,
           ASSET_MANIFEST: MANIFEST,
@@ -52,16 +48,24 @@ export default {
     }
 
     try {
-      const origin = new URL(request.url).origin;
-      const loadContext: AppLoadContext = {
-        origin,
-        env,
-        waitUntil: ctx.waitUntil,
-        // passThroughOnException: ctx.passThroughOnException,
+      const loadContext = {
+        cloudflare: {
+          // This object matches the return value from Wrangler's
+          // `getPlatformProxy` used during development via Remix's
+          // `cloudflareDevProxyVitePlugin`:
+          // https://developers.cloudflare.com/workers/wrangler/api/#getplatformproxy
+          cf: request.cf,
+          ctx: {
+            waitUntil: ctx.waitUntil,
+            passThroughOnException: ctx.passThroughOnException,
+          },
+          caches,
+          env,
+        },
       };
       const response = await handleRemixRequest(request, loadContext);
       if (
-        request.url.startsWith(`${origin}/api/`) &&
+        request.url.startsWith(`${url.origin}/api/`) &&
         !response.headers.get("Content-Type")?.startsWith("application/json")
       ) {
         response.headers.delete("Content-Type");

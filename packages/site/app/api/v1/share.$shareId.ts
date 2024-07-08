@@ -1,8 +1,7 @@
 import { json } from "@remix-run/cloudflare";
 import { z } from "zod";
-import { getDb } from "~/store.server";
+import { getDb } from "~/.server/store";
 import { QueryData } from "~/types/QueryData";
-import { LoaderArgs } from "~/util/loader";
 import { zxParseParams } from "~/util/zod";
 import { ShortenedData } from "./share";
 
@@ -11,7 +10,7 @@ export interface InvalidShareIdData {
   expiredAt: string | undefined;
 }
 
-export const loader = async ({ params, context }: LoaderArgs) => {
+export const loader = async ({ params, context }: LoaderFunctionArgs) => {
   const { shareId: id } = zxParseParams(params, { shareId: z.string() });
 
   const key = `share-${id}`;
@@ -24,7 +23,7 @@ export const loader = async ({ params, context }: LoaderArgs) => {
   if (!shortened) {
     let expiredAt: Date | undefined;
     try {
-      const db = getDb(context.env.HYPERDRIVE.connectionString);
+      const db = getDb(context.env.HYPERDRIVE);
       const link = await db.query.shareLinks.findFirst({
         where: (shareLinks, { and, eq, lt }) =>
           and(eq(shareLinks.shareId, id), lt(shareLinks.expiresAt, new Date())),

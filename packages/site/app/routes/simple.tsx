@@ -1,8 +1,10 @@
+import { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { useLoaderData, useSearchParams } from "@remix-run/react";
 import { APIWebhook } from "discord-api-types/v10";
 import { useEffect, useReducer, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { SafeParseError, SafeParseReturnType, ZodError } from "zod";
+import { getUser } from "~/.server/session";
 import { BRoutes, apiUrl } from "~/api/routing";
 import { InvalidShareIdData } from "~/api/v1/share.$shareId";
 import { Button } from "~/components/Button";
@@ -22,7 +24,6 @@ import { MessageSetModal } from "~/modals/MessageSetModal";
 import { ShareExpiredModal } from "~/modals/ShareExpiredModal";
 import { TargetAddModal } from "~/modals/TargetAddModal";
 import { WebhookEditModal } from "~/modals/WebhookEditModal";
-import { getUser } from "~/session.server";
 import { QueryData, ZodQueryData } from "~/types/QueryData";
 import {
   INDEX_FAILURE_MESSAGE,
@@ -30,14 +31,13 @@ import {
   WEBHOOK_URL_RE,
 } from "~/util/constants";
 import { getWebhook } from "~/util/discord";
-import { LoaderArgs } from "~/util/loader";
 import { useLocalStorage } from "~/util/localstorage";
 import { base64Decode, base64UrlEncode, randomString } from "~/util/text";
 import { userIsPremium } from "~/util/users";
 import { snowflakeAsString } from "~/util/zod";
 import { DraftFile, HistoryItem, safePushState } from "./_index";
 
-export const loader = async ({ request, context }: LoaderArgs) => {
+export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   const user = await getUser(request, context);
   return {
     user,
@@ -45,7 +45,7 @@ export const loader = async ({ request, context }: LoaderArgs) => {
   };
 };
 
-export default function Index() {
+export default () => {
   const { t } = useTranslation();
   const { user, discordApplicationId } = useLoaderData<typeof loader>();
   const isPremium = user ? userIsPremium(user) : false;
@@ -63,7 +63,6 @@ export default function Index() {
   const [data, setData] = useState<QueryData>({
     version: "d2",
     messages: [],
-    components: {},
   });
   const [files, setFiles] = useState<DraftFile[]>([]);
 
@@ -448,4 +447,4 @@ export default function Index() {
       </Prose>
     </div>
   );
-}
+};

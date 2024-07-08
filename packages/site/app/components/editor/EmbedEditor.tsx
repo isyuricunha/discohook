@@ -10,7 +10,7 @@ import { InfoBox } from "../InfoBox";
 import { TextArea } from "../TextArea";
 import { TextInput } from "../TextInput";
 import { CoolIcon } from "../icons/CoolIcon";
-import { ColorPicker } from "./ColorPicker";
+import { ColorPicker } from "./ColorPicker.client";
 
 export const isEmbedEmpty = (embed: APIEmbed): boolean =>
   !embed.author &&

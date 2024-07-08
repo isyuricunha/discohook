@@ -1,15 +1,15 @@
+import { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { Link, MetaFunction, useLoaderData } from "@remix-run/react";
 import { ButtonStyle, ComponentType } from "discord-api-types/v10";
+import { getUser } from "~/.server/session";
 import { Button } from "~/components/Button";
 import { Header } from "~/components/Header";
 import { InfoBox } from "~/components/InfoBox";
 import { Prose } from "~/components/Prose";
 import { Twemoji } from "~/components/icons/Twemoji";
 import { MessageComponents } from "~/components/preview/Components";
-import { getUser } from "~/session.server";
-import { LoaderArgs } from "~/util/loader";
 
-export const loader = ({ request, context }: LoaderArgs) =>
+export const loader = ({ request, context }: LoaderFunctionArgs) =>
   getUser(request, context);
 
 export const meta: MetaFunction = () => [

@@ -1,11 +1,13 @@
-import { SerializeFrom } from "@remix-run/cloudflare";
+import { LoaderFunctionArgs, SerializeFrom } from "@remix-run/cloudflare";
 import { Link, useLoaderData, useSearchParams } from "@remix-run/react";
 import { APIEmbed, APIEmbedImage, ButtonStyle } from "discord-api-types/v10";
 import { useEffect, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { twJoin } from "tailwind-merge";
 import { SafeParseReturnType, z } from "zod";
+import { getUser } from "~/.server/session";
 import { BRoutes, apiUrl } from "~/api/routing";
+import type { loader as ApiLinkBackupsId } from "~/api/v1/link-backups.$id";
 import { Button } from "~/components/Button";
 import { Header } from "~/components/Header";
 import { InfoBox } from "~/components/InfoBox";
@@ -18,14 +20,12 @@ import { Message } from "~/components/preview/Message.client";
 import { HistoryModal } from "~/modals/HistoryModal";
 import { ImageModal, ImageModalProps } from "~/modals/ImageModal";
 import { PreviewDisclaimerModal } from "~/modals/PreviewDisclaimerModal";
-import { getUser } from "~/session.server";
 import {
   LinkQueryData,
   ZodLinkEmbed,
   ZodLinkQueryData,
 } from "~/types/QueryData";
 import { LINK_INDEX_EMBED, LINK_INDEX_FAILURE_EMBED } from "~/util/constants";
-import { LoaderArgs } from "~/util/loader";
 import { useLocalStorage } from "~/util/localstorage";
 import {
   base64Decode,
@@ -35,10 +35,9 @@ import {
 } from "~/util/text";
 import { getUserAvatar, userIsPremium } from "~/util/users";
 import { snowflakeAsString } from "~/util/zod";
-import { loader as apiLinkBackupsId } from "../api/v1/link-backups.$id";
 import { safePushState } from "./_index";
 
-export const loader = async ({ request, context }: LoaderArgs) => {
+export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   const user = await getUser(request, context);
   return { user, myOrigin: context.env.MY_ORIGIN };
 };
@@ -129,7 +128,7 @@ export default () => {
       return null;
     }
     const { id, code, name, data } = (await r.json()) as SerializeFrom<
-      typeof apiLinkBackupsId
+      typeof ApiLinkBackupsId
     >;
     return {
       id,

@@ -11,7 +11,6 @@ import { InfoBox } from "../InfoBox";
 import { TextArea } from "../TextArea";
 import { TextInput } from "../TextInput";
 import { CoolIcon } from "../icons/CoolIcon";
-import { ColorPicker } from "./ColorPicker";
 import { EmbedEditorSection } from "./EmbedEditor";
 
 export const getEmbedText = (embed: LinkEmbed): string | undefined =>
@@ -283,7 +282,7 @@ export const LinkEmbedEditor: React.FC<{
               }}
             />
           </summary>
-          <ColorPicker
+          {/* <ColorPicker
             color={embed.color ? `#${embed.color.toString(16)}` : undefined}
             onChange={(color) => {
               updateEmbed({
@@ -293,7 +292,7 @@ export const LinkEmbedEditor: React.FC<{
                     : parseInt(color.hex.replace("#", "0x"), 16),
               });
             }}
-          />
+          /> */}
         </details>
         {!!embed.video?.url && (
           <InfoBox severity="yellow" icon="Info">

@@ -1,11 +1,15 @@
+import { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { z } from "zod";
-import { getDiscordAuth } from "~/auth-discord.server";
-import { getGuildedAuth } from "~/auth-guilded.server";
-import { getSessionStorage } from "~/session.server";
-import { LoaderArgs } from "~/util/loader";
+import { getDiscordAuth } from "~/.server/auth-discord";
+import { getGuildedAuth } from "~/.server/auth-guilded";
+import { getSessionStorage } from "~/.server/session";
 import { zxParseParams } from "~/util/zod";
 
-export const loader = async ({ request, context, params }: LoaderArgs) => {
+export const loader = async ({
+  request,
+  context,
+  params,
+}: LoaderFunctionArgs) => {
   const { method } = zxParseParams(params, {
     method: z.enum(["discord", "guilded"]),
   });

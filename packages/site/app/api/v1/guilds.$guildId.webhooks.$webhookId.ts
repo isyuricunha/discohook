@@ -1,5 +1,5 @@
 import { REST } from "@discordjs/rest";
-import { json } from "@remix-run/cloudflare";
+import { ActionFunctionArgs, json } from "@remix-run/cloudflare";
 import {
   APIWebhook,
   RESTPatchAPIWebhookJSONBody,
@@ -13,13 +13,16 @@ import {
   authorizeRequest,
   getGuild,
   getTokenGuildPermissions,
-} from "~/session.server";
-import { upsertGuild } from "~/store.server";
+} from "~/.server/session";
+import { upsertGuild } from "~/.server/store";
 import { isDiscordError } from "~/util/discord";
-import { ActionArgs } from "~/util/loader";
 import { snowflakeAsString, zxParseJson, zxParseParams } from "~/util/zod";
 
-export const action = async ({ request, context, params }: ActionArgs) => {
+export const action = async ({
+  request,
+  context,
+  params,
+}: ActionFunctionArgs) => {
   const { guildId, webhookId } = zxParseParams(params, {
     guildId: snowflakeAsString(),
     webhookId: snowflakeAsString(),
@@ -35,7 +38,7 @@ export const action = async ({ request, context, params }: ActionArgs) => {
     throw respond(json({ message: "Missing permissions" }, 403));
   }
 
-  const db = getDb(context.env.HYPERDRIVE.connectionString);
+  const db = getDb(context.env.HYPERDRIVE);
   const rest = new REST().setToken(context.env.DISCORD_BOT_TOKEN);
   switch (request.method) {
     case "PATCH": {

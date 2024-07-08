@@ -1,15 +1,14 @@
 import { REST } from "@discordjs/rest";
 import { json } from "@remix-run/cloudflare";
 import {
-  APIChannel,
-  ChannelType,
-  RESTGetAPIChannelResult,
-  Routes,
+    APIChannel,
+    ChannelType,
+    RESTGetAPIChannelResult,
+    Routes,
 } from "discord-api-types/v10";
-import { authorizeRequest } from "~/session.server";
+import { authorizeRequest } from "~/.server/session";
 import { ResolvableAPIChannel } from "~/util/cache/CacheManager";
 import { isDiscordError } from "~/util/discord";
-import { LoaderArgs } from "~/util/loader";
 import { snowflakeAsString, zxParseParams } from "~/util/zod";
 
 export const getChannelIconType = (channel: APIChannel) => {
@@ -41,7 +40,7 @@ export const getChannelIconType = (channel: APIChannel) => {
   }
 };
 
-export const loader = async ({ request, context, params }: LoaderArgs) => {
+export const loader = async ({ request, context, params }: LoaderFunctionArgs) => {
   const { channelId } = zxParseParams(params, {
     channelId: snowflakeAsString(),
   });

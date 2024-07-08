@@ -1,4 +1,4 @@
-import { SessionStorage } from "@remix-run/cloudflare";
+import { AppLoadContext, SessionStorage } from "@remix-run/cloudflare";
 import {
   APIUser,
   RESTPostOAuth2AccessTokenResult,
@@ -7,7 +7,13 @@ import {
 import { eq, sql } from "drizzle-orm";
 import { Authenticator } from "remix-auth";
 import { DiscordStrategy } from "remix-auth-discord";
-import { getSessionStorage } from "./session.server";
+import {
+  DISCORD_API,
+  DISCORD_API_V,
+  getCurrentUserGuilds,
+} from "../util/discord";
+import { base64Encode } from "../util/text";
+import { getSessionStorage } from "./session";
 import {
   DBWithSchema,
   discordGuilds,
@@ -16,15 +22,7 @@ import {
   makeSnowflake,
   oauthInfo,
   upsertDiscordUser,
-} from "./store.server";
-import { Env } from "./types/env";
-import {
-  DISCORD_API,
-  DISCORD_API_V,
-  getCurrentUserGuilds,
-} from "./util/discord";
-import { Context } from "./util/loader";
-import { base64Encode } from "./util/text";
+} from "./store";
 
 export type UserAuth = {
   id: string;
@@ -33,7 +31,7 @@ export type UserAuth = {
 };
 
 export const getDiscordAuth = (
-  context: Context,
+  context: AppLoadContext,
   sessionStorage?: SessionStorage,
 ) => {
   const discordAuth = new Authenticator<UserAuth>(
@@ -53,7 +51,7 @@ export const getDiscordAuth = (
       profile,
     }): Promise<UserAuth> => {
       const j = profile.__json as APIUser;
-      const db = getDb(context.env.HYPERDRIVE.connectionString);
+      const db = getDb(context.env.HYPERDRIVE);
       const user = await upsertDiscordUser(db, j, {
         accessToken,
         refreshToken,

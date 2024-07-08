@@ -9,12 +9,11 @@ import { PermissionFlags } from "discord-bitflag";
 import { sql } from "drizzle-orm";
 import { getDb, webhooks } from "store";
 import { zx } from "zodix";
-import { authorizeRequest, getTokenGuildPermissions } from "~/session.server";
+import { authorizeRequest, getTokenGuildPermissions } from "~/.server/session";
 import { isDiscordError } from "~/util/discord";
-import { LoaderArgs } from "~/util/loader";
 import { snowflakeAsString, zxParseParams, zxParseQuery } from "~/util/zod";
 
-export const loader = async ({ request, context, params }: LoaderArgs) => {
+export const loader = async ({ request, context, params }: LoaderFunctionArgs) => {
   const { guildId } = zxParseParams(params, {
     guildId: snowflakeAsString(),
   });
@@ -33,7 +32,7 @@ export const loader = async ({ request, context, params }: LoaderArgs) => {
     throw respond(json({ message: "Missing permissions" }, 403));
   }
 
-  const db = getDb(context.env.HYPERDRIVE.connectionString);
+  const db = getDb(context.env.HYPERDRIVE);
   let guildWebhooks = await db.query.webhooks.findMany({
     where: (webhooks, { and, eq }) =>
       and(

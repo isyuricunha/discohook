@@ -1,6 +1,7 @@
 import { Link, useLoaderData } from "@remix-run/react";
 import React, { useState } from "react";
 import { twJoin } from "tailwind-merge";
+import { getUser } from "~/.server/session";
 import { Header } from "~/components/Header";
 import { Twemoji } from "~/components/icons/Twemoji";
 import { linkClassName } from "~/components/preview/Markdown";
@@ -9,10 +10,8 @@ import {
   SimpleTextModal,
   SimpleTextModalProps,
 } from "~/modals/SimpleTextModal";
-import { getUser } from "~/session.server";
-import { LoaderArgs } from "~/util/loader";
 
-export const loader = async ({ request, context }: LoaderArgs) => {
+export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   const user = await getUser(request, context);
   const wallets = {
     btc: context.env.BITCOIN_ADDRESS,

@@ -1,11 +1,11 @@
 import { type i18n as i18nT } from "i18next";
 import { useTranslation } from "react-i18next";
 import { twJoin } from "tailwind-merge";
+import { User } from "~/.server/session";
 import { Checkbox } from "~/components/Checkbox";
 import { Radio } from "~/components/Radio";
 import { CoolIcon } from "~/components/icons/CoolIcon";
 import { Twemoji } from "~/components/icons/Twemoji";
-import { User } from "~/session.server";
 import { LocaleCode, Settings, useLocalStorage } from "~/util/localstorage";
 import { Modal, ModalProps } from "./Modal";
 

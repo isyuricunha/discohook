@@ -14,7 +14,7 @@ import {
   UserFlags,
 } from "discord-api-types/v10";
 import { z } from "zod";
-import { DraftFlow } from "~/store.server";
+import { DraftFlow } from "~/.server/store";
 import { randomString } from "~/util/text";
 import { ZodAPIActionRowComponent } from "./components";
 import { ZodMessageFlags } from "./discord";

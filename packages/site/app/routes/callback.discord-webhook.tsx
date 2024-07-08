@@ -1,10 +1,10 @@
+import { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { getDiscordWebhookAuth } from "~/auth-discord-webhook.server";
-import { LoaderArgs } from "~/util/loader";
+import { getDiscordWebhookAuth } from "~/.server/auth-discord-webhook";
 
-export const loader = async ({ request, context }: LoaderArgs) => {
+export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   const search = new URL(request.url).searchParams;
   if (search.get("error")) {
     return {

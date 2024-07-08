@@ -4,11 +4,10 @@ import { APIWebhook, Routes, WebhookType } from "discord-api-types/v10";
 import { PermissionFlags } from "discord-bitflag";
 import { sql } from "drizzle-orm";
 import { getDb, webhooks } from "store";
-import { authorizeRequest, getTokenGuildPermissions } from "~/session.server";
-import { LoaderArgs } from "~/util/loader";
+import { authorizeRequest, getTokenGuildPermissions } from "~/.server/session";
 import { snowflakeAsString, zxParseParams } from "~/util/zod";
 
-export const loader = async ({ request, context, params }: LoaderArgs) => {
+export const loader = async ({ request, context, params }: LoaderFunctionArgs) => {
   const { guildId, webhookId } = zxParseParams(params, {
     guildId: snowflakeAsString(),
     webhookId: snowflakeAsString(),
@@ -24,7 +23,7 @@ export const loader = async ({ request, context, params }: LoaderArgs) => {
     throw respond(json({ message: "Missing permissions" }, 403));
   }
 
-  const db = getDb(context.env.HYPERDRIVE.connectionString);
+  const db = getDb(context.env.HYPERDRIVE);
   const dbWebhook = await db.query.webhooks.findFirst({
     where: (webhooks, { and, eq }) =>
       and(eq(webhooks.platform, "discord"), eq(webhooks.id, String(webhookId))),

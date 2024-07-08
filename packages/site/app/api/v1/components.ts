@@ -1,6 +1,7 @@
+import { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { ButtonStyle, ComponentType } from "discord-api-types/v10";
 import { parseQuery } from "zodix";
-import { getUserId } from "~/session.server";
+import { getUserId } from "~/.server/session";
 import {
   DraftComponent,
   DraftFlow,
@@ -9,12 +10,11 @@ import {
   flows,
   getDb,
   inArray,
-} from "~/store.server";
+} from "~/.server/store";
 import { ZodAPIMessageActionRowComponent } from "~/types/components";
-import { ActionArgs, LoaderArgs } from "~/util/loader";
 import { snowflakeAsString, zxParseJson } from "~/util/zod";
 
-export const loader = async ({ request, context }: LoaderArgs) => {
+export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   const { id: ids } = parseQuery(
     request,
     {
@@ -29,7 +29,7 @@ export const loader = async ({ request, context }: LoaderArgs) => {
   );
   const userId = await getUserId(request, context);
 
-  const db = getDb(context.env.HYPERDRIVE.connectionString);
+  const db = getDb(context.env.HYPERDRIVE);
   const components = await db.query.discordMessageComponents.findMany({
     where: inArray(discordMessageComponents.id, ids),
     columns: {
@@ -112,11 +112,11 @@ export const loader = async ({ request, context }: LoaderArgs) => {
     });
 };
 
-export const action = async ({ request, context }: ActionArgs) => {
+export const action = async ({ request, context }: ActionFunctionArgs) => {
   const component = await zxParseJson(request, ZodAPIMessageActionRowComponent);
   const userId = await getUserId(request, context);
 
-  const db = getDb(context.env.HYPERDRIVE.connectionString);
+  const db = getDb(context.env.HYPERDRIVE);
 
   const createdFlow = (
     await db.insert(flows).values({}).returning({ id: flows.id })
@@ -177,9 +177,9 @@ export const action = async ({ request, context }: ActionArgs) => {
 
   // We create durable objects for all new draft components so that they can
   // self-expire if they haven't been touched.
-  const doId = context.env.DRAFT_CLEANER.idFromName(String(inserted.id));
-  const stub = context.env.DRAFT_CLEANER.get(doId);
-  await stub.fetch(`http://do/?id=${inserted.id}`);
+  // const doId = context.env.DRAFT_CLEANER.idFromName(String(inserted.id));
+  // const stub = context.env.DRAFT_CLEANER.get(doId);
+  // await stub.fetch(`http://do/?id=${inserted.id}`);
 
   return inserted;
 };

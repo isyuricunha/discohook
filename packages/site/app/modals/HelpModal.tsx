@@ -5,7 +5,7 @@ import { Button } from "~/components/Button";
 import { TextInput } from "~/components/TextInput";
 import { PreviewButton } from "~/components/preview/Components";
 import { Embed } from "~/components/preview/Embed";
-import tags_ from "../../public/help/en.json";
+import tags_ from "~/help/en.json";
 import { Modal, ModalProps } from "./Modal";
 
 export const HelpModal = (props: ModalProps) => {

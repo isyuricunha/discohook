@@ -7,7 +7,7 @@ export interface Env {
   DEVELOPMENT_SERVER_ID: string;
   DISCOHOOK_ORIGIN: string;
   TOKEN_SECRET: string;
-  DATABASE_URL: string;
+  WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE?: string;
   HYPERDRIVE: Hyperdrive;
   KV: KVNamespace;
   COMPONENTS: DurableObjectNamespace;

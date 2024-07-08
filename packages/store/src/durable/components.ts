@@ -1,3 +1,4 @@
+// import type { DurableObject } from "cloudflare:workers";
 import { z } from "zod";
 import { zx } from "zodix";
 import { getDb } from "../db.js";
@@ -25,7 +26,7 @@ export class DurableComponentState implements DurableObject {
     switch (request.method) {
       case "POST": {
         const { id } = zx.parseQuery(request, { id: z.string() });
-        const db = getDb(this.env.HYPERDRIVE.connectionString);
+        const db = getDb(this.env.HYPERDRIVE);
         const component = await db.query.discordMessageComponents.findFirst({
           where: (table, { eq }) => eq(table.id, makeSnowflake(id)),
           columns: {

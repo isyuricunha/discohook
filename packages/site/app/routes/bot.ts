@@ -1,7 +1,6 @@
 import { redirect } from "@remix-run/cloudflare";
-import { LoaderArgs } from "~/util/loader";
 
-export const loader = ({ request, context }: LoaderArgs) =>
+export const loader = ({ request, context }: LoaderFunctionArgs) =>
   redirect(
     new URL(
       `https://discord.com/oauth2/authorize?${new URLSearchParams({

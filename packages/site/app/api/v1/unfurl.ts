@@ -1,14 +1,13 @@
 import { json } from "@remix-run/cloudflare";
 import {
-  APIEmbed,
-  APIEmbedImage,
-  APIEmbedVideo,
-  EmbedType,
+    APIEmbed,
+    APIEmbedImage,
+    APIEmbedVideo,
+    EmbedType,
 } from "discord-api-types/v10";
 import he from "he";
 import { z } from "zod";
 import { getYoutubeVideoParameters } from "~/components/preview/Gallery";
-import { LoaderArgs } from "~/util/loader";
 import Scraper from "~/util/scraper";
 import { jsonAsString, zxParseQuery } from "~/util/zod";
 import { ZodOEmbedData } from "./oembed";
@@ -118,7 +117,7 @@ const qualifyUrl = (url: string, currentUrl: string) => {
   }
 };
 
-export const loader = async ({ request }: LoaderArgs) => {
+export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { url: url_ } = zxParseQuery(request, { url: z.string().url() });
 
   /*

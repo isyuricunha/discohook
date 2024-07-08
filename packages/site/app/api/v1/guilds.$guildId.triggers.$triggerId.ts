@@ -1,14 +1,21 @@
-import { json } from "@remix-run/cloudflare";
+import {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  json,
+} from "@remix-run/cloudflare";
 import { PermissionFlags } from "discord-bitflag";
 import { getDb } from "store";
-import { authorizeRequest, getTokenGuildPermissions } from "~/session.server";
-import { eq, flowActions, flows } from "~/store.server";
+import { authorizeRequest, getTokenGuildPermissions } from "~/.server/session";
+import { eq, flowActions, flows } from "~/.server/store";
 import { ZodDraftFlowWithMax } from "~/types/flows";
-import { ActionArgs, LoaderArgs } from "~/util/loader";
 import { userIsPremium } from "~/util/users";
 import { snowflakeAsString, zxParseJson, zxParseParams } from "~/util/zod";
 
-export const loader = async ({ request, context, params }: LoaderArgs) => {
+export const loader = async ({
+  request,
+  context,
+  params,
+}: LoaderFunctionArgs) => {
   const { guildId, triggerId } = zxParseParams(params, {
     guildId: snowflakeAsString(),
     triggerId: snowflakeAsString(),
@@ -24,7 +31,7 @@ export const loader = async ({ request, context, params }: LoaderArgs) => {
     throw respond(json({ message: "Missing permissions" }, 403));
   }
 
-  const db = getDb(context.env.HYPERDRIVE.connectionString);
+  const db = getDb(context.env.HYPERDRIVE);
   const trigger = await db.query.triggers.findFirst({
     where: (triggers, { eq }) => eq(triggers.id, triggerId),
     columns: {
@@ -46,7 +53,11 @@ export const loader = async ({ request, context, params }: LoaderArgs) => {
   return respond(json(trigger));
 };
 
-export const action = async ({ request, context, params }: ActionArgs) => {
+export const action = async ({
+  request,
+  context,
+  params,
+}: ActionFunctionArgs) => {
   if (request.method !== "PATCH") {
     throw json({ message: "Method Not Allowed" }, 405);
   }
@@ -70,7 +81,7 @@ export const action = async ({ request, context, params }: ActionArgs) => {
     flow: ZodDraftFlowWithMax(premium ? 20 : 5),
   });
 
-  const db = getDb(context.env.HYPERDRIVE.connectionString);
+  const db = getDb(context.env.HYPERDRIVE);
   const trigger = await db.query.triggers.findFirst({
     where: (triggers, { eq }) => eq(triggers.id, triggerId),
     columns: {

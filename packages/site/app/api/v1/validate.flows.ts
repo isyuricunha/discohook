@@ -1,9 +1,8 @@
-import { getUser } from "~/session.server";
+import { getUser } from "~/.server/session";
 import { ZodFlowWithMax } from "~/types/flows";
-import { LoaderArgs } from "~/util/loader";
 import { userIsPremium } from "~/util/users";
 
-export const action = async ({ request, context }: LoaderArgs) => {
+export const action = async ({ request, context }: LoaderFunctionArgs) => {
   const data = await request.json();
 
   const user = await getUser(request, context, true);

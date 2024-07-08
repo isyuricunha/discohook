@@ -1,5 +1,6 @@
 import { REST } from "@discordjs/rest";
 import {
+  AppLoadContext,
   SerializeFrom,
   createCookie,
   createWorkersKVSessionStorage,
@@ -18,7 +19,7 @@ import {
 import { PermissionFlags, PermissionsBitField } from "discord-bitflag";
 import { isSnowflake } from "discord-snowflake";
 import { JWTPayload, SignJWT, jwtVerify } from "jose";
-import { getDiscordUserOAuth } from "./auth-discord.server";
+import { getDiscordUserOAuth } from "./auth-discord";
 import {
   discordMembers,
   generateId,
@@ -26,11 +27,9 @@ import {
   makeSnowflake,
   tokens,
   upsertDiscordUser,
-} from "./store.server";
-import { Env } from "./types/env";
-import { Context } from "./util/loader";
+} from "./store";
 
-export const getSessionStorage = (context: Context) => {
+export const getSessionStorage = (context: AppLoadContext) => {
   const sessionStorage = createWorkersKVSessionStorage({
     kv: context.env.KV,
     cookie: createCookie("__discohook_session", {
@@ -46,7 +45,7 @@ export const getSessionStorage = (context: Context) => {
   return { getSession, commitSession, destroySession, sessionStorage };
 };
 
-export const getTokenStorage = (context: Context) => {
+export const getTokenStorage = (context: AppLoadContext) => {
   const sessionStorage = createWorkersKVSessionStorage({
     kv: context.env.KV,
     cookie: createCookie("__discohook_token", {
@@ -72,17 +71,17 @@ export type User = SerializeFrom<typeof upsertDiscordUser>;
 
 export async function getUserId(
   request: Request,
-  context: Context,
+  context: AppLoadContext,
   throwIfNull?: false,
 ): Promise<bigint | null>;
 export async function getUserId(
   request: Request,
-  context: Context,
+  context: AppLoadContext,
   throwIfNull?: true,
 ): Promise<bigint>;
 export async function getUserId(
   request: Request,
-  context: Context,
+  context: AppLoadContext,
   throwIfNull?: boolean,
 ): Promise<bigint | null> {
   const session = await getSessionStorage(context).getSession(
@@ -100,17 +99,17 @@ export async function getUserId(
 
 export async function getUser(
   request: Request,
-  context: Context,
+  context: AppLoadContext,
   throwIfNull?: false,
 ): Promise<User | null>;
 export async function getUser(
   request: Request,
-  context: Context,
+  context: AppLoadContext,
   throwIfNull?: true,
 ): Promise<User>;
 export async function getUser(
   request: Request,
-  context: Context,
+  context: AppLoadContext,
   throwIfNull?: boolean,
 ): Promise<User | null> {
   const userId = await getUserId(request, context, false);
@@ -125,7 +124,7 @@ export async function getUser(
     return null;
   }
 
-  const db = getDb(context.env.HYPERDRIVE.connectionString);
+  const db = getDb(context.env.HYPERDRIVE);
   const user = await db.query.users.findFirst({
     where: (users, { eq }) => eq(users.id, userId),
     columns: {
@@ -208,7 +207,7 @@ export interface KVTokenGuildChannelPermissions {
 
 const regenerateToken = async (env: Env, origin: string, userId: bigint) => {
   const token = await createToken(env, origin, userId);
-  const db = getDb(env.HYPERDRIVE.connectionString);
+  const db = getDb(env.HYPERDRIVE);
   const user = await db.query.users.findFirst({
     where: (users, { eq }) => eq(users.id, userId),
     columns: {
@@ -280,7 +279,7 @@ export type TokenWithUser = {
 
 export async function authorizeRequest(
   request: Request,
-  context: Context,
+  context: AppLoadContext,
   options?: {
     requireToken?: boolean;
   },
@@ -296,10 +295,14 @@ export async function authorizeRequest(
 
   const serveNewToken = async () => {
     const user = await getUser(request, context, true);
-    const token = await regenerateToken(context.env, context.origin, user.id);
+    const token = await regenerateToken(
+      context.env,
+      context.origin,
+      user.id,
+    );
     const countryCode = request.headers.get("CF-IPCountry") ?? undefined;
 
-    const db = getDb(context.env.HYPERDRIVE.connectionString);
+    const db = getDb(context.env.HYPERDRIVE);
     await db.insert(tokens).values({
       platform: "discord",
       prefix: "user",
@@ -367,7 +370,7 @@ export async function authorizeRequest(
     const tokenId = payload.jti!;
     // const userId = BigInt(payload.uid as string);
 
-    const db = getDb(context.env.HYPERDRIVE.connectionString);
+    const db = getDb(context.env.HYPERDRIVE);
     const token = await db.query.tokens.findFirst({
       where: (tokens, { eq }) => eq(tokens.id, makeSnowflake(tokenId)),
       columns: {
@@ -454,7 +457,7 @@ export const getTokenGuildPermissions = async (
       permissions: new PermissionsBitField(BigInt(cached.permissions)),
     };
   } else {
-    const db = getDb(env.HYPERDRIVE.connectionString);
+    const db = getDb(env.HYPERDRIVE);
     if (!token.user.discordId) {
       throw json({ message: "User has no linked Discord user" }, 401);
     }
@@ -562,7 +565,7 @@ export const getTokenGuildChannelPermissions = async (
       permissions: new PermissionsBitField(BigInt(cached.permissions)),
     };
   } else {
-    const db = getDb(env.HYPERDRIVE.connectionString);
+    const db = getDb(env.HYPERDRIVE);
     if (!token.user.discordId) {
       throw json({ message: "User has no linked Discord user" }, 401);
     }

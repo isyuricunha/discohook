@@ -4,7 +4,7 @@
 
 import type { HLJSApi } from "highlight.js";
 import hljs_ from "highlight.js";
-import "../../public/hljs.css";
+import "~/hljs.css?url";
 
 let hljs = hljs_;
 

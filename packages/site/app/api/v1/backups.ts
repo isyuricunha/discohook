@@ -1,9 +1,10 @@
-import { json } from "@remix-run/cloudflare";
+import {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  json,
+} from "@remix-run/cloudflare";
 import { z } from "zod";
-import { getUser, getUserId } from "~/session.server";
-import { ZodQueryData } from "~/types/QueryData";
-import { ActionArgs, LoaderArgs } from "~/util/loader";
-import { zxParseJson, zxParseQuery } from "~/util/zod";
+import { getUser, getUserId } from "~/.server/session";
 import {
   QueryData,
   backups,
@@ -11,9 +12,11 @@ import {
   getDb,
   inArray,
   makeSnowflake,
-} from "../../store.server";
+} from "~/.server/store";
+import { ZodQueryData } from "~/types/QueryData";
+import { zxParseJson, zxParseQuery } from "~/util/zod";
 
-export const loader = async ({ request, context }: LoaderArgs) => {
+export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   const userId = await getUserId(request, context, true);
   const { ids } = zxParseQuery(request, {
     ids: z
@@ -28,7 +31,7 @@ export const loader = async ({ request, context }: LoaderArgs) => {
       .transform((v) => v.split(",").map(BigInt)),
   });
 
-  const db = getDb(context.env.HYPERDRIVE.connectionString);
+  const db = getDb(context.env.HYPERDRIVE);
   const results = await db.query.backups.findMany({
     where: inArray(backups.id, ids),
     columns: {
@@ -86,7 +89,7 @@ export const findMessagesPreviewImageUrl = (
 
 type MessageFile = File & { messageIndex: number };
 
-export const action = async ({ request, context }: ActionArgs) => {
+export const action = async ({ request, context }: ActionFunctionArgs) => {
   const contentLength = Number(request.headers.get("Content-Length"));
   if (!contentLength || Number.isNaN(contentLength)) {
     throw json({ message: "Must provide Content-Length header." }, 400);
@@ -140,7 +143,7 @@ export const action = async ({ request, context }: ActionArgs) => {
   //   console.log(uploadData);
   // }
 
-  const db = getDb(context.env.HYPERDRIVE.connectionString);
+  const db = getDb(context.env.HYPERDRIVE);
   return (
     await db
       .insert(backups)

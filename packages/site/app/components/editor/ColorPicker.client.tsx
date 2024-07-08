@@ -1,7 +1,12 @@
-import { CustomPicker, InjectedColorProps, SketchPicker } from "react-color";
+import { memo } from "react";
+import {
+  CustomPicker,
+  type CustomPickerInjectedProps,
+  SketchPicker,
+} from "react-color";
 import { Button } from "../Button";
 
-const ColorPickerFunction: React.FC<InjectedColorProps> = (props) => (
+const ColorPickerFunction: React.FC<CustomPickerInjectedProps> = (props) => (
   <div className="absolute right-0 top-16 z-[1] w-fit rounded border border-gray-50 bg-gray-50 dark:border-gray-700 dark:bg-gray-700 dark:text-primary-230 shadow-md">
     <SketchPicker
       {...props}
@@ -77,4 +82,4 @@ const ColorPickerFunction: React.FC<InjectedColorProps> = (props) => (
   </div>
 );
 
-export const ColorPicker = CustomPicker(ColorPickerFunction);
+export const ColorPicker = memo(CustomPicker(ColorPickerFunction));

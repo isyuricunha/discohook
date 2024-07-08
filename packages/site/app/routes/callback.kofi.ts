@@ -1,9 +1,8 @@
-import { json } from "@remix-run/cloudflare";
+import { ActionFunctionArgs, json } from "@remix-run/cloudflare";
 import { ZodKofiDonationPayload } from "~/types/kofi";
-import { ActionArgs } from "~/util/loader";
 import { zxParseForm } from "~/util/zod";
 
-export const action = async ({ request, context }: ActionArgs) => {
+export const action = async ({ request, context }: ActionFunctionArgs) => {
   const verificationToken = context.env.KOFI_WEBHOOK_TOKEN;
   if (!verificationToken) {
     // Technically optional on ko-fi's side,

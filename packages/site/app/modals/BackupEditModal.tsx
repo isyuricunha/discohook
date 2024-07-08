@@ -1,14 +1,13 @@
 import { Form } from "@remix-run/react";
-import {
+import type {
   CronFields,
   DayOfTheMonthRange,
   DayOfTheWeekRange,
   HourRange,
   MonthRange,
   SixtyRange,
-  fieldsToExpression,
-  parseExpression,
 } from "cron-parser";
+import cronParser from "cron-parser";
 import moment, { Moment } from "moment";
 import { useReducer, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
@@ -32,8 +31,10 @@ import {
   cronToEnglish,
   getTimezone,
 } from "~/util/time";
-import { action as ApiBackupsIdAction } from "../api/v1/backups.$id";
+import { action as ApiBackupsIdAction } from "../.server/api/v1/backups.$id";
 import { Modal, ModalProps } from "./Modal";
+
+const { fieldsToExpression, parseExpression } = cronParser;
 
 const Inner = ({ backup }: { backup: LoadedBackup }) => {
   const { t } = useTranslation();

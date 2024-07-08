@@ -6,7 +6,7 @@
 
 import type { AppLoadContext, EntryContext } from "@remix-run/cloudflare";
 import { RemixServer } from "@remix-run/react";
-import isbot from "isbot";
+import { isbot } from "isbot";
 import { renderToReadableStream } from "react-dom/server";
 
 export default async function handleRequest(
@@ -19,6 +19,16 @@ export default async function handleRequest(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   loadContext: AppLoadContext,
 ) {
+  const { env } = loadContext.cloudflare;
+  if (!env.HYPERDRIVE && env.ENVIRONMENT === "dev") {
+    env.HYPERDRIVE = {
+      connectionString:
+        env.WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE,
+    } as Hyperdrive;
+  }
+  loadContext.env = env;
+  loadContext.origin = new URL(request.url).origin;
+
   let status = responseStatusCode;
   const body = await renderToReadableStream(
     <RemixServer context={remixContext} url={request.url} />,
@@ -32,7 +42,7 @@ export default async function handleRequest(
     },
   );
 
-  if (isbot(request.headers.get("user-agent"))) {
+  if (isbot(request.headers.get("user-agent") || "")) {
     await body.allReady;
   }
 

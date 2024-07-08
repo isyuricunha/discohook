@@ -1,5 +1,5 @@
 import { REST } from "@discordjs/rest";
-import { json } from "@remix-run/cloudflare";
+import { ActionFunctionArgs, json } from "@remix-run/cloudflare";
 import { isLinkButton } from "discord-api-types/utils/v10";
 import {
   APIButtonComponentWithCustomId,
@@ -11,9 +11,8 @@ import {
 } from "discord-api-types/v10";
 import { notInArray } from "drizzle-orm";
 import { z } from "zod";
-import { getUserId } from "~/session.server";
+import { getUserId } from "~/.server/session";
 import { getWebhook, getWebhookMessage } from "~/util/discord";
-import { ActionArgs } from "~/util/loader";
 import { snowflakeAsString, zxParseForm, zxParseParams } from "~/util/zod";
 import {
   and,
@@ -28,7 +27,7 @@ import {
   sql,
   upsertGuild,
   webhooks,
-} from "../../store.server";
+} from "../../.server/store";
 
 export const getComponentId = (
   component:
@@ -54,7 +53,11 @@ export const getComponentId = (
     : undefined;
 };
 
-export const action = async ({ request, context, params }: ActionArgs) => {
+export const action = async ({
+  request,
+  context,
+  params,
+}: ActionFunctionArgs) => {
   const { webhookId, webhookToken, messageId } = zxParseParams(params, {
     webhookId: snowflakeAsString().transform(String),
     webhookToken: z.string(),
@@ -105,7 +108,7 @@ export const action = async ({ request, context, params }: ActionArgs) => {
     throw json(webhook, 404);
   }
 
-  const db = getDb(context.env.HYPERDRIVE.connectionString);
+  const db = getDb(context.env.HYPERDRIVE);
 
   let guildId: bigint | undefined = undefined;
   if (webhook.guild_id) {

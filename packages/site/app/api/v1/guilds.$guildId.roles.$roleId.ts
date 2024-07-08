@@ -7,14 +7,13 @@ import {
 } from "discord-api-types/v10";
 import { sql } from "drizzle-orm";
 import { z } from "zod";
-import { authorizeRequest } from "~/session.server";
-import { discordRoles, getDb, makeSnowflake } from "~/store.server";
+import { authorizeRequest } from "~/.server/session";
+import { discordRoles, getDb, makeSnowflake } from "~/.server/store";
 import { ResolvableAPIRole } from "~/util/cache/CacheManager";
 import { isDiscordError } from "~/util/discord";
-import { LoaderArgs } from "~/util/loader";
 import { snowflakeAsString, zxParseParams } from "~/util/zod";
 
-export const loader = async ({ request, context, params }: LoaderArgs) => {
+export const loader = async ({ request, context, params }: LoaderFunctionArgs) => {
   const { guildId, roleId } = zxParseParams(params, {
     guildId: z.literal("@global").or(snowflakeAsString()),
     roleId: snowflakeAsString(),
@@ -23,7 +22,7 @@ export const loader = async ({ request, context, params }: LoaderArgs) => {
   const rest = new REST().setToken(context.env.DISCORD_BOT_TOKEN);
   const [, respond] = await authorizeRequest(request, context);
 
-  const db = getDb(context.env.HYPERDRIVE.connectionString);
+  const db = getDb(context.env.HYPERDRIVE);
   const dbRole = await db.query.discordRoles.findFirst({
     where: (discordRoles, { eq }) => eq(discordRoles.id, roleId),
     columns: {

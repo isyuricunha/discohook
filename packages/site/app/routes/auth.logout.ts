@@ -1,5 +1,5 @@
-import { getDiscordAuth } from "~/auth-discord.server";
-import { LoaderArgs } from "~/util/loader";
+import { LoaderFunctionArgs } from "@remix-run/cloudflare";
+import { getDiscordAuth } from "~/.server/auth-discord";
 
-export const loader = ({ request, context }: LoaderArgs) =>
+export const loader = ({ request, context }: LoaderFunctionArgs) =>
   getDiscordAuth(context).logout(request, { redirectTo: "/" });

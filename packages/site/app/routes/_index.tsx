@@ -1,4 +1,8 @@
-import { SerializeFrom, defer } from "@remix-run/cloudflare";
+import {
+  LoaderFunctionArgs,
+  SerializeFrom,
+  defer
+} from "@remix-run/cloudflare";
 import { Link, useLoaderData, useSearchParams } from "@remix-run/react";
 import { isLinkButton } from "discord-api-types/utils/v10";
 import { APIWebhook, ButtonStyle, ComponentType } from "discord-api-types/v10";
@@ -7,7 +11,10 @@ import { useEffect, useReducer, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { twJoin, twMerge } from "tailwind-merge";
 import { SafeParseError, SafeParseReturnType, ZodError } from "zod";
+import { getUser } from "~/.server/session";
+import { getDb } from "~/.server/store";
 import { BRoutes, apiUrl } from "~/api/routing";
+import type { loader as ApiGetComponents } from "~/api/v1/components";
 import { InvalidShareIdData } from "~/api/v1/share.$shareId";
 import { Button } from "~/components/Button";
 import { Header } from "~/components/Header";
@@ -25,7 +32,10 @@ import { ExampleModal } from "~/modals/ExampleModal";
 import { EditingFlowData, FlowEditModal } from "~/modals/FlowEditModal";
 import { HistoryModal } from "~/modals/HistoryModal";
 import { ImageModal, ImageModalProps } from "~/modals/ImageModal";
-import { JsonEditorModal, JsonEditorProps } from "~/modals/JsonEditorModal";
+import {
+  JsonEditorModal,
+  JsonEditorProps,
+} from "~/modals/JsonEditorModal";
 import { MessageFlagsEditModal } from "~/modals/MesageFlagsEditModal";
 import { MessageSaveModal } from "~/modals/MessageSaveModal";
 import { MessageSendModal } from "~/modals/MessageSendModal";
@@ -34,8 +44,6 @@ import { PreviewDisclaimerModal } from "~/modals/PreviewDisclaimerModal";
 import { ShareExpiredModal } from "~/modals/ShareExpiredModal";
 import { TargetAddModal } from "~/modals/TargetAddModal";
 import { WebhookEditModal } from "~/modals/WebhookEditModal";
-import { getUser } from "~/session.server";
-import { getDb } from "~/store.server";
 import {
   APIMessageActionRowComponent,
   QueryData,
@@ -48,16 +56,14 @@ import {
   WEBHOOK_URL_RE,
 } from "~/util/constants";
 import { cdn, getWebhook } from "~/util/discord";
-import { LoaderArgs } from "~/util/loader";
 import { useLocalStorage } from "~/util/localstorage";
 import { base64Decode, base64UrlEncode, randomString } from "~/util/text";
 import { userIsPremium } from "~/util/users";
 import { snowflakeAsString } from "~/util/zod";
-import { loader as ApiGetComponents } from "../api/v1/components";
 
-export const loader = async ({ request, context }: LoaderArgs) => {
+export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   const user = await getUser(request, context);
-  const db = getDb(context.env.HYPERDRIVE.connectionString);
+  const db = getDb(context.env.HYPERDRIVE);
   const memberships = (async () => {
     return user?.discordId
       ? (

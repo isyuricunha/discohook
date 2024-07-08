@@ -1,5 +1,5 @@
+import { User } from "~/.server/session";
 import { Button } from "~/components/Button";
-import { User } from "~/session.server";
 import { getUserAvatar, getUserTag } from "~/util/users";
 import { Modal, ModalProps } from "./Modal";
 

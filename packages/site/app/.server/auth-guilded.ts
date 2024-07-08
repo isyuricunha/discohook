@@ -1,21 +1,14 @@
-import { SessionStorage } from "@remix-run/cloudflare";
+import { AppLoadContext, SessionStorage } from "@remix-run/cloudflare";
 import { RESTPostOAuth2AccessTokenResult } from "discord-api-types/v10";
 import { eq } from "drizzle-orm";
 import { Authenticator } from "remix-auth";
 import { GuildedStrategy } from "remix-auth-guilded";
-import { OauthInfo, UserAuth } from "./auth-discord.server";
-import { getSessionStorage } from "./session.server";
-import {
-  DBWithSchema,
-  getDb,
-  oauthInfo,
-  upsertGuildedUser,
-} from "./store.server";
-import { Env } from "./types/env";
-import { Context } from "./util/loader";
+import { OauthInfo, UserAuth } from "./auth-discord";
+import { getSessionStorage } from "./session";
+import { DBWithSchema, getDb, oauthInfo, upsertGuildedUser } from "./store";
 
 export const getGuildedAuth = (
-  context: Context,
+  context: AppLoadContext,
   sessionStorage?: SessionStorage,
 ) => {
   if (!context.env.AUTHLINK_CLIENT_ID || !context.env.AUTHLINK_CLIENT_SECRET) {
@@ -39,7 +32,7 @@ export const getGuildedAuth = (
     }): Promise<UserAuth> => {
       const guildedUser = profile._json;
 
-      const db = getDb(context.env.HYPERDRIVE.connectionString);
+      const db = getDb(context.env.HYPERDRIVE);
       const user = await upsertGuildedUser(db, guildedUser, {
         accessToken,
         refreshToken,

@@ -1,13 +1,14 @@
+import { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
 import { TFunction } from "i18next";
 import React, { useReducer } from "react";
 import { Trans, useTranslation } from "react-i18next";
+import { getUser } from "~/.server/session";
 import { Header } from "~/components/Header";
 import { Prose } from "~/components/Prose";
 import { CoolIcon } from "~/components/icons/CoolIcon";
 import { codeStyle } from "~/components/preview/Markdown";
 import { Message } from "~/components/preview/Message.client";
-import { getUser } from "~/session.server";
 import { useCache } from "~/util/cache/CacheManager";
 import {
   cdn,
@@ -16,11 +17,10 @@ import {
   getSnowflakeDate,
   time,
 } from "~/util/discord";
-import { LoaderArgs } from "~/util/loader";
 import { useLocalStorage } from "~/util/localstorage";
 import { getUserAvatar, getUserTag } from "~/util/users";
 
-export const loader = async ({ request, context }: LoaderArgs) => {
+export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   const user = await getUser(request, context);
   return { user };
 };

@@ -1,5 +1,10 @@
 import { REST } from "@discordjs/rest";
-import { defer, json } from "@remix-run/cloudflare";
+import {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  defer,
+  json,
+} from "@remix-run/cloudflare";
 import { Form, useLoaderData, useNavigate, useSubmit } from "@remix-run/react";
 import {
   APIApplication,
@@ -16,6 +21,16 @@ import { type SQL, isNotNull } from "drizzle-orm";
 import { useEffect, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { z } from "zod";
+import { getUser } from "~/.server/session";
+import {
+  customBots,
+  discordGuilds,
+  discordMembers,
+  eq,
+  getDb,
+  makeSnowflake,
+  sql,
+} from "~/.server/store";
 import { AsyncGuildSelect, OptionGuild } from "~/components/AsyncGuildSelect";
 import { Button } from "~/components/Button";
 import { useError } from "~/components/Error";
@@ -26,33 +41,26 @@ import { CoolIcon } from "~/components/icons/CoolIcon";
 import { linkClassName } from "~/components/preview/Markdown";
 import { TabHeader, TabsWindow } from "~/components/tabs";
 import { BotDeleteConfirmModal } from "~/modals/BotDeleteConfirmModal";
-import { getUser } from "~/session.server";
-import {
-  customBots,
-  discordGuilds,
-  discordMembers,
-  eq,
-  getDb,
-  makeSnowflake,
-  sql,
-} from "~/store.server";
 import { RESTGetAPIApplicationRpcResult } from "~/types/discord";
 import {
   DISCORD_BOT_TOKEN_RE,
   botAppAvatar,
   isDiscordError,
 } from "~/util/discord";
-import { ActionArgs, LoaderArgs } from "~/util/loader";
 import { base64Encode, copyText } from "~/util/text";
 import { getUserTag } from "~/util/users";
 import { snowflakeAsString, zxParseForm, zxParseParams } from "~/util/zod";
 import { KVCustomBot } from "./me";
 
-export const loader = async ({ request, context, params }: LoaderArgs) => {
+export const loader = async ({
+  request,
+  context,
+  params,
+}: LoaderFunctionArgs) => {
   const { id } = zxParseParams(params, { id: snowflakeAsString() });
   const user = await getUser(request, context, true);
 
-  const db = getDb(context.env.HYPERDRIVE.connectionString);
+  const db = getDb(context.env.HYPERDRIVE);
   const bot = (
     await db
       .select({
@@ -93,10 +101,14 @@ export const loader = async ({ request, context, params }: LoaderArgs) => {
   return defer({ user, bot, memberships });
 };
 
-export const action = async ({ request, context, params }: ActionArgs) => {
+export const action = async ({
+  request,
+  context,
+  params,
+}: ActionFunctionArgs) => {
   const { id: botId } = zxParseParams(params, { id: snowflakeAsString() });
   const user = await getUser(request, context, true);
-  const db = getDb(context.env.HYPERDRIVE.connectionString);
+  const db = getDb(context.env.HYPERDRIVE);
 
   if (request.method === "PATCH") {
     const {

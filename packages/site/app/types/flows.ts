@@ -21,7 +21,7 @@ import type {
   FlowActionSetVariable,
   FlowActionToggleRole,
   FlowActionWait,
-} from "~/store.server";
+} from "~/.server/store";
 import { ZodMessageFlags } from "./discord";
 
 // This should match FlowActionType from the store package

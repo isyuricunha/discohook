@@ -1,5 +1,5 @@
 import { REST } from "@discordjs/rest";
-import { json } from "@remix-run/cloudflare";
+import { ActionFunctionArgs, json } from "@remix-run/cloudflare";
 import {
   RESTGetAPIWebhookWithTokenResult,
   RESTPostAPIWebhookWithTokenJSONBody,
@@ -8,8 +8,7 @@ import {
   Routes,
 } from "discord-api-types/v10";
 import { z } from "zod";
-import { getDb, githubPosts } from "~/store.server";
-import { ActionArgs } from "~/util/loader";
+import { getDb, githubPosts } from "~/.server/store";
 import { snowflakeAsString, zxParseJson, zxParseParams } from "~/util/zod";
 
 type GitHubType = (typeof githubPosts)["type"]["_"]["data"];
@@ -28,7 +27,11 @@ const GitHubRepository = z.object({
   }),
 });
 
-export const action = async ({ request, context, params }: ActionArgs) => {
+export const action = async ({
+  request,
+  context,
+  params,
+}: ActionFunctionArgs) => {
   if (request.method !== "POST") {
     throw json({ message: "Method not allowed" }, 405);
   }
@@ -125,7 +128,7 @@ export const action = async ({ request, context, params }: ActionArgs) => {
     Routes.webhook(webhookId, webhookToken),
   )) as RESTGetAPIWebhookWithTokenResult;
 
-  const db = getDb(context.env.HYPERDRIVE.connectionString);
+  const db = getDb(context.env.HYPERDRIVE);
   const extantPost = await db.query.githubPosts.findFirst({
     where: (githubPosts, { and, eq }) =>
       and(

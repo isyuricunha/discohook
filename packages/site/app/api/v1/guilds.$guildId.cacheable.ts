@@ -10,18 +10,17 @@ import {
   authorizeRequest,
   getGuild,
   getTokenGuildPermissions,
-} from "~/session.server";
-import { discordRoles, getDb, makeSnowflake } from "~/store.server";
+} from "~/.server/session";
+import { discordRoles, getDb, makeSnowflake } from "~/.server/store";
 import {
   ResolvableAPIChannel,
   ResolvableAPIEmoji,
   ResolvableAPIRole,
 } from "~/util/cache/CacheManager";
-import { LoaderArgs } from "~/util/loader";
 import { snowflakeAsString, zxParseParams } from "~/util/zod";
 import { getChannelIconType } from "./channels.$channelId";
 
-export const loader = async ({ request, context, params }: LoaderArgs) => {
+export const loader = async ({ request, context, params }: LoaderFunctionArgs) => {
   const { guildId } = zxParseParams(params, {
     guildId: snowflakeAsString(),
   });
@@ -34,7 +33,7 @@ export const loader = async ({ request, context, params }: LoaderArgs) => {
     guild = await getGuild(guildId, rest, context.env);
   }
 
-  const db = getDb(context.env.HYPERDRIVE.connectionString);
+  const db = getDb(context.env.HYPERDRIVE);
   await db
     .insert(discordRoles)
     .values(

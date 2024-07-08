@@ -139,7 +139,7 @@ export const createShareLink = async (
     metadata: { expiresAt: new Date(new Date().valueOf() + ttl).toISOString() },
   });
   if (userId) {
-    const db = getDb(env.HYPERDRIVE.connectionString);
+    const db = getDb(env.HYPERDRIVE);
     await db.insert(shareLinks).values({
       userId,
       shareId: id,
@@ -158,7 +158,7 @@ export const createShareLink = async (
 
 export const restoreMessageEntry: MessageAppCommandCallback = async (ctx) => {
   const user = await upsertDiscordUser(
-    getDb(ctx.env.HYPERDRIVE.connectionString),
+    getDb(ctx.env.HYPERDRIVE),
     ctx.user,
   );
   const message = ctx.getMessage();

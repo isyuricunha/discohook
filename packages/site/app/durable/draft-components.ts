@@ -3,8 +3,7 @@ import {
   eq,
   getDb,
   makeSnowflake,
-} from "~/store.server";
-import { Env } from "~/types/env";
+} from "~/.server/store";
 import { snowflakeAsString, zxParseQuery } from "~/util/zod";
 
 /**
@@ -41,7 +40,7 @@ export class DurableDraftComponentCleaner implements DurableObject {
       return;
     }
 
-    const db = getDb(this.env.HYPERDRIVE.connectionString);
+    const db = getDb(this.env.HYPERDRIVE);
     const component = await db.query.discordMessageComponents.findFirst({
       where: (table, { eq }) => eq(table.id, makeSnowflake(id)),
       columns: {

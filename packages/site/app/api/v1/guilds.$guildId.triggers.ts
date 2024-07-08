@@ -1,12 +1,15 @@
-import { json } from "@remix-run/cloudflare";
+import {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  json,
+} from "@remix-run/cloudflare";
 import { PermissionFlags } from "discord-bitflag";
 import { flows as dFlows, triggers as dTriggers, getDb } from "store";
 import { z } from "zod";
 import { zx } from "zodix";
-import { authorizeRequest, getTokenGuildPermissions } from "~/session.server";
-import { TriggerEvent, flowActions } from "~/store.server";
+import { authorizeRequest, getTokenGuildPermissions } from "~/.server/session";
+import { TriggerEvent, flowActions } from "~/.server/store";
 import { ZodDraftFlowWithMax } from "~/types/flows";
-import { ActionArgs, LoaderArgs } from "~/util/loader";
 import { userIsPremium } from "~/util/users";
 import {
   snowflakeAsString,
@@ -15,7 +18,11 @@ import {
   zxParseQuery,
 } from "~/util/zod";
 
-export const loader = async ({ request, context, params }: LoaderArgs) => {
+export const loader = async ({
+  request,
+  context,
+  params,
+}: LoaderFunctionArgs) => {
   const { guildId } = zxParseParams(params, {
     guildId: snowflakeAsString(),
   });
@@ -34,7 +41,7 @@ export const loader = async ({ request, context, params }: LoaderArgs) => {
     throw respond(json({ message: "Missing permissions" }, 403));
   }
 
-  const db = getDb(context.env.HYPERDRIVE.connectionString);
+  const db = getDb(context.env.HYPERDRIVE);
   const triggers = await db.query.triggers.findMany({
     where: (triggers, { and, eq }) =>
       and(
@@ -76,7 +83,11 @@ export const loader = async ({ request, context, params }: LoaderArgs) => {
   return respond(json(triggers));
 };
 
-export const action = async ({ request, context, params }: ActionArgs) => {
+export const action = async ({
+  request,
+  context,
+  params,
+}: ActionFunctionArgs) => {
   if (request.method !== "POST") {
     throw json({ message: "Method Not Allowed" }, 405);
   }
@@ -100,7 +111,7 @@ export const action = async ({ request, context, params }: ActionArgs) => {
     flow: ZodDraftFlowWithMax(premium ? 20 : 5).optional(),
   });
 
-  const db = getDb(context.env.HYPERDRIVE.connectionString);
+  const db = getDb(context.env.HYPERDRIVE);
 
   const curTriggers = await db.query.triggers.findMany({
     where: (triggers, { eq, and }) =>

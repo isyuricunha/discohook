@@ -1,7 +1,6 @@
 import { REST } from "@discordjs/rest";
-import { parseExpression } from "cron-parser";
+import cronParser from "cron-parser";
 import { z } from "zod";
-import { submitMessage } from "~/modals/MessageSendModal";
 import {
   ScheduledRunData,
   ScheduledRunStatus,
@@ -9,10 +8,12 @@ import {
   eq,
   getDb,
   makeSnowflake,
-} from "~/store.server";
-import { Env } from "~/types/env";
+} from "~/.server/store";
+import { submitMessage } from "~/modals/MessageSendModal";
 import { WEBHOOK_URL_RE } from "~/util/constants";
 import { snowflakeAsString, zxParseQuery } from "~/util/zod";
+
+const { parseExpression } = cronParser;
 
 export class DurableScheduler implements DurableObject {
   constructor(
@@ -37,7 +38,7 @@ export class DurableScheduler implements DurableObject {
       return;
     }
 
-    const db = getDb(this.env.HYPERDRIVE.connectionString);
+    const db = getDb(this.env.HYPERDRIVE);
     const backup = await db.query.backups.findFirst({
       where: (backups, { eq }) => eq(backups.id, makeSnowflake(backupId)),
       columns: {

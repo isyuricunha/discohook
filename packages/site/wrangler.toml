@@ -6,24 +6,33 @@ main = "./build/index.js"
 compatibility_date = "2023-04-20"
 node_compat = true
 
-kv_namespaces = [
-  { binding = "KV", id = "29967d1631d24846a448e8d2bcc49a5b", preview_id = "03d176ba6dbd4a2daa2f63f9f8f8bb4b" },
-]
+[[kv_namespaces]]
+binding = "KV"
+id = "29967d1631d24846a448e8d2bcc49a5b"
+preview_id = "03d176ba6dbd4a2daa2f63f9f8f8bb4b"
 
-services = [
-  { binding = "CDN", service = "discohook-cdn", entrypoint = "UploaderService" },
-]
+[[services]]
+binding = "CDN"
+service = "discohook-cdn"
+entrypoint = "UploaderService"
 
-# [[hyperdrive]]
-# binding = "HYPERDRIVE"
-# id = ""
+[[hyperdrive]]
+binding = "HYPERDRIVE"
+id = "b78274cce7d543ca952af16633c1885d"
+localConnectionString = "postgresql://boogie:password@localhost:5432/discohook"
 
-[durable_objects]
-bindings = [
-  { name = "SCHEDULER", class_name = "DurableScheduler" },
-  { name = "COMPONENTS", class_name = "DurableComponentState", script_name = "discohook-bot" },
-  { name = "DRAFT_CLEANER", class_name = "DurableDraftComponentCleaner" }
-]
+# [[durable_objects.bindings]]
+# name = "SCHEDULER"
+# class_name = "DurableScheduler"
+
+# [[durable_objects.bindings]]
+# name = "COMPONENTS"
+# class_name = "DurableComponentState"
+# script_name = "discohook-bot"
+
+# [[durable_objects.bindings]]
+# name = "DRAFT_CLEANER"
+# class_name = "DurableDraftComponentCleaner"
 
 [[migrations]]
 tag = "v1"

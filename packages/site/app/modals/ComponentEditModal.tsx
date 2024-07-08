@@ -11,10 +11,10 @@ import { TFunction } from "i18next";
 import React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { twJoin } from "tailwind-merge";
+import { Flow } from "~/.server/store";
 import { Checkbox } from "~/components/Checkbox";
 import { useError } from "~/components/Error";
 import { PopoutEmojiPicker } from "~/components/editor/EmojiPicker";
-import { Flow } from "~/store.server";
 import {
   APIButtonComponent,
   APIMessageActionRowComponent,

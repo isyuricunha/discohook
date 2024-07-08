@@ -1,5 +1,6 @@
 import { REST } from "@discordjs/rest";
 import {
+  LoaderFunctionArgs,
   MetaFunction,
   SerializeFrom,
   json,
@@ -21,7 +22,19 @@ import { getDate } from "discord-snowflake";
 import { useEffect, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { z } from "zod";
+import {
+  authorizeRequest,
+  getGuild,
+  getTokenGuildPermissions,
+} from "~/.server/session";
+import { Flow } from "~/.server/store";
 import { BRoutes, apiUrl } from "~/api/routing";
+import type { loader as ApiGetGuildAuditLog } from "~/api/v1/guilds.$guildId.log";
+import type { loader as ApiGetGuildSessions } from "~/api/v1/guilds.$guildId.sessions";
+import type { loader as ApiGetGuildTriggers } from "~/api/v1/guilds.$guildId.triggers";
+import type { action as ApiPatchGuildTrigger } from "~/api/v1/guilds.$guildId.triggers.$triggerId";
+import type { loader as ApiGetGuildWebhooks } from "~/api/v1/guilds.$guildId.webhooks";
+import type { action as ApiPatchGuildWebhook } from "~/api/v1/guilds.$guildId.webhooks.$webhookId";
 import { Button } from "~/components/Button";
 import { useError } from "~/components/Error";
 import { Header } from "~/components/Header";
@@ -32,25 +45,17 @@ import { TabHeader, TabsWindow } from "~/components/tabs";
 import { FlowEditModal } from "~/modals/FlowEditModal";
 import { TriggerCreateModal } from "~/modals/TriggerCreateModal";
 import { WebhookEditModal } from "~/modals/WebhookEditModal";
-import {
-  authorizeRequest,
-  getGuild,
-  getTokenGuildPermissions,
-} from "~/session.server";
-import { Flow } from "~/store.server";
 import { useCache } from "~/util/cache/CacheManager";
 import { cdn, cdnImgAttributes, isDiscordError } from "~/util/discord";
-import { LoaderArgs, useSafeFetcher } from "~/util/loader";
+import { useSafeFetcher } from "~/util/loader";
 import { zxParseParams } from "~/util/zod";
-import { loader as ApiGetGuildAuditLog } from "../api/v1/guilds.$guildId.log";
-import { loader as ApiGetGuildSessions } from "../api/v1/guilds.$guildId.sessions";
-import { loader as ApiGetGuildTriggers } from "../api/v1/guilds.$guildId.triggers";
-import { action as ApiPatchGuildTrigger } from "../api/v1/guilds.$guildId.triggers.$triggerId";
-import { loader as ApiGetGuildWebhooks } from "../api/v1/guilds.$guildId.webhooks";
-import { action as ApiPatchGuildWebhook } from "../api/v1/guilds.$guildId.webhooks.$webhookId";
 import { Cell } from "./donate";
 
-export const loader = async ({ request, context, params }: LoaderArgs) => {
+export const loader = async ({
+  request,
+  context,
+  params,
+}: LoaderFunctionArgs) => {
   const { guildId } = zxParseParams(params, {
     guildId: z.string().refine((v) => !Number.isNaN(Number(v))),
   });

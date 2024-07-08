@@ -1,12 +1,11 @@
 import { json } from "@remix-run/cloudflare";
 import { PermissionFlags } from "discord-bitflag";
 import { zx } from "zodix";
-import { authorizeRequest, getTokenGuildPermissions } from "~/session.server";
-import { getDb, webhooks } from "~/store.server";
-import { LoaderArgs } from "~/util/loader";
+import { authorizeRequest, getTokenGuildPermissions } from "~/.server/session";
+import { getDb, webhooks } from "~/.server/store";
 import { snowflakeAsString, zxParseParams, zxParseQuery } from "~/util/zod";
 
-export const loader = async ({ request, context, params }: LoaderArgs) => {
+export const loader = async ({ request, context, params }: LoaderFunctionArgs) => {
   const { guildId } = zxParseParams(params, {
     guildId: snowflakeAsString(),
   });
@@ -28,7 +27,7 @@ export const loader = async ({ request, context, params }: LoaderArgs) => {
     throw respond(json({ message: "Missing permissions" }, 403));
   }
 
-  const db = getDb(context.env.HYPERDRIVE.connectionString);
+  const db = getDb(context.env.HYPERDRIVE);
   const entries = await db.query.messageLogEntries.findMany({
     where: (table, { eq }) => eq(table.discordGuildId, guildId),
     columns: {

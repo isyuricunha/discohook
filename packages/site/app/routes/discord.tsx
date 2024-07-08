@@ -2,26 +2,25 @@ import { DiscordErrorData } from "@discordjs/rest";
 import { redirect } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
 import {
-  ButtonStyle,
-  RESTGetAPIInviteResult,
-  RouteBases,
-  Routes,
+    ButtonStyle,
+    RESTGetAPIInviteResult,
+    RouteBases,
+    Routes,
 } from "discord-api-types/v10";
 import { useEffect, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { zx } from "zodix";
+import { getUser } from "~/.server/session";
 import { Button } from "~/components/Button";
 import { Checkbox } from "~/components/Checkbox";
 import { useError } from "~/components/Error";
 import { Header } from "~/components/Header";
 import { Prose } from "~/components/Prose";
 import { linkClassName } from "~/components/preview/Markdown";
-import { getUser } from "~/session.server";
 import { cdn, cdnImgAttributes } from "~/util/discord";
-import { LoaderArgs } from "~/util/loader";
 import { zxParseQuery } from "~/util/zod";
 
-export const loader = async ({ request, context }: LoaderArgs) => {
+export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   const { redirect: instantRedirect } = zxParseQuery(request, {
     redirect: zx.BoolAsString.optional(),
   });

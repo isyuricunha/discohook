@@ -2,18 +2,18 @@ import { Link, useFetcher } from "@remix-run/react";
 import { APIWebhook, ButtonStyle } from "discord-api-types/v10";
 import { useCallback, useEffect, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
+import { User } from "~/.server/session";
 import { BRoutes, apiUrl } from "~/api/routing";
+import { action as backupCreateAction } from "~/api/v1/backups";
+import { action as shareCreateAction } from "~/api/v1/share";
 import { Button } from "~/components/Button";
 import { Checkbox } from "~/components/Checkbox";
 import { useError } from "~/components/Error";
 import { TextInput } from "~/components/TextInput";
 import { CoolIcon } from "~/components/icons/CoolIcon";
-import { User } from "~/session.server";
 import { QueryData } from "~/types/QueryData";
 import { useSafeFetcher } from "~/util/loader";
 import { copyText } from "~/util/text";
-import { action as backupCreateAction } from "../api/v1/backups";
-import { action as shareCreateAction } from "../api/v1/share";
 import { Modal, ModalProps } from "./Modal";
 
 export const MessageSaveModal = (

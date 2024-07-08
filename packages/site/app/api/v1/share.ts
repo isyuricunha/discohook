@@ -1,10 +1,9 @@
-import { json } from "@remix-run/cloudflare";
+import { ActionFunctionArgs, json } from "@remix-run/cloudflare";
 import { z } from "zod";
 import { zx } from "zodix";
-import { getUserId } from "~/session.server";
-import { getDb, shareLinks } from "~/store.server";
+import { getUserId } from "~/.server/session";
+import { getDb, shareLinks } from "~/.server/store";
 import { ZodQueryData } from "~/types/QueryData";
-import { ActionArgs } from "~/util/loader";
 import { randomString } from "~/util/text";
 import { jsonAsString, zxParseForm } from "~/util/zod";
 
@@ -31,7 +30,7 @@ export const generateUniqueShortenKey = async (
   return await generateUniqueShortenKey(kv, length + 1);
 };
 
-export const action = async ({ request, context }: ActionArgs) => {
+export const action = async ({ request, context }: ActionFunctionArgs) => {
   const contentLength = Number(request.headers.get("Content-Length"));
   if (!contentLength || Number.isNaN(contentLength)) {
     throw json({ message: "Must provide Content-Length header." }, 400);
@@ -66,7 +65,7 @@ export const action = async ({ request, context }: ActionArgs) => {
     userId: userId?.toString(),
   };
 
-  const db = getDb(context.env.HYPERDRIVE.connectionString);
+  const db = getDb(context.env.HYPERDRIVE);
   const kv = context.env.KV;
   const { id, key } = await generateUniqueShortenKey(kv, 8);
   await kv.put(key, JSON.stringify(shortened), {

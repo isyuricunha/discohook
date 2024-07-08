@@ -1,9 +1,8 @@
-import { json } from "@remix-run/cloudflare";
+import { ActionFunctionArgs, LoaderFunctionArgs, json } from "@remix-run/cloudflare";
 import { getDb } from "store";
 import { z } from "zod";
-import { backups, makeSnowflake } from "~/store.server";
+import { backups, makeSnowflake } from "~/.server/store";
 import { ZodDiscohookBackup } from "~/types/discohook";
-import { ActionArgs, LoaderArgs } from "~/util/loader";
 import { getUserAvatar } from "~/util/users";
 import { findMessagesPreviewImageUrl } from "./backups";
 
@@ -31,7 +30,7 @@ const verifyToken = async (request: Request, kv: KVNamespace) => {
   return { ...data, token };
 };
 
-export const loader = async ({ request, context }: LoaderArgs) => {
+export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   if (request.method === "OPTIONS") {
     return new Response(undefined, {
       headers: getCorsHeaders(context.env.LEGACY_ORIGIN),
@@ -39,7 +38,7 @@ export const loader = async ({ request, context }: LoaderArgs) => {
   }
 
   const { userId } = await verifyToken(request, context.env.KV);
-  const db = getDb(context.env.HYPERDRIVE.connectionString);
+  const db = getDb(context.env.HYPERDRIVE);
   const user = await db.query.users.findFirst({
     where: (users, { eq }) => eq(users.id, makeSnowflake(userId)),
     columns: {
@@ -83,7 +82,7 @@ export const loader = async ({ request, context }: LoaderArgs) => {
   );
 };
 
-export const action = async ({ request, context }: ActionArgs) => {
+export const action = async ({ request, context }: ActionFunctionArgs) => {
   const { userId, token } = await verifyToken(request, context.env.KV);
   const parsed = await z
     .object({
@@ -106,7 +105,7 @@ export const action = async ({ request, context }: ActionArgs) => {
     );
   }
 
-  const db = getDb(context.env.HYPERDRIVE.connectionString);
+  const db = getDb(context.env.HYPERDRIVE);
   await db
     .insert(backups)
     .values(

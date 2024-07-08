@@ -6,9 +6,10 @@ kv_namespaces = [
   { binding = "KV", id = "29967d1631d24846a448e8d2bcc49a5b", preview_id = "03d176ba6dbd4a2daa2f63f9f8f8bb4b" }
 ]
 
-# [[hyperdrive]]
-# binding = "HYPERDRIVE"
-# id = ""
+[[hyperdrive]]
+binding = "HYPERDRIVE"
+id = "b78274cce7d543ca952af16633c1885d"
+localConnectionString = "postgresql://boogie:password@localhost:5432/discohook"
 
 [vars]
 ENVIRONMENT = "dev"

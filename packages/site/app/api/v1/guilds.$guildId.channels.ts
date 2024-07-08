@@ -1,17 +1,16 @@
 import { REST } from "@discordjs/rest";
 import { json } from "@remix-run/cloudflare";
 import {
-  ChannelType,
-  RESTGetAPIGuildChannelsResult,
-  Routes,
+    ChannelType,
+    RESTGetAPIGuildChannelsResult,
+    Routes,
 } from "discord-api-types/v10";
-import { authorizeRequest, getTokenGuildPermissions } from "~/session.server";
+import { authorizeRequest, getTokenGuildPermissions } from "~/.server/session";
 import { ResolvableAPIChannel } from "~/util/cache/CacheManager";
-import { LoaderArgs } from "~/util/loader";
 import { snowflakeAsString, zxParseParams } from "~/util/zod";
 import { getChannelIconType } from "./channels.$channelId";
 
-export const loader = async ({ request, context, params }: LoaderArgs) => {
+export const loader = async ({ request, context, params }: LoaderFunctionArgs) => {
   const { guildId } = zxParseParams(params, {
     guildId: snowflakeAsString(),
   });

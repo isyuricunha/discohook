@@ -1,5 +1,6 @@
 import { REST } from "@discordjs/rest";
 import {
+  AppLoadContext,
   createCookie,
   createWorkersKVSessionStorage,
 } from "@remix-run/cloudflare";
@@ -16,10 +17,9 @@ import {
   upsertDiscordUser,
   upsertGuild,
   webhooks,
-} from "./store.server";
-import { Context } from "./util/loader";
+} from "./store";
 
-export const getDiscordWebhookAuth = (context: Context) => {
+export const getDiscordWebhookAuth = (context: AppLoadContext) => {
   const dudSessionStorage = createWorkersKVSessionStorage({
     kv: context.env.KV,
     cookie: createCookie("__discohook_webhook", {
@@ -44,7 +44,7 @@ export const getDiscordWebhookAuth = (context: Context) => {
       const { webhook } =
         extraParams as unknown as RESTPostOAuth2AccessTokenWithBotAndGuildsAndWebhookIncomingScopeResult;
 
-      const db = getDb(context.env.HYPERDRIVE.connectionString);
+      const db = getDb(context.env.HYPERDRIVE);
       let guildId: bigint | undefined = undefined;
       if (webhook.guild_id) {
         const rest = new REST().setToken(context.env.DISCORD_BOT_TOKEN);

@@ -1,5 +1,7 @@
 import { REST } from "@discordjs/rest";
 import {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
   MetaFunction,
   SerializeFrom,
   defer,
@@ -20,6 +22,7 @@ import { Trans, useTranslation } from "react-i18next";
 import { twJoin, twMerge } from "tailwind-merge";
 import { z } from "zod";
 import { zx } from "zodix";
+import { getUser, getUserId } from "~/.server/session";
 import { Button } from "~/components/Button";
 import { Header } from "~/components/Header";
 import { InfoBox } from "~/components/InfoBox";
@@ -33,7 +36,6 @@ import { BackupEditModal } from "~/modals/BackupEditModal";
 import { BackupExportModal } from "~/modals/BackupExportModal";
 import { BackupImportModal } from "~/modals/BackupImportModal";
 import { BotCreateModal } from "~/modals/BotCreateModal";
-import { getUser, getUserId } from "~/session.server";
 import { DiscohookBackup } from "~/types/discohook";
 import { RESTGetAPIApplicationRpcResult } from "~/types/discord";
 import {
@@ -43,7 +45,6 @@ import {
   isDiscordError,
 } from "~/util/discord";
 import { DeconstructedSnowflake, getId } from "~/util/id";
-import { ActionArgs, LoaderArgs } from "~/util/loader";
 import { useLocalStorage } from "~/util/localstorage";
 import { relativeTime } from "~/util/time";
 import { getUserAvatar, getUserTag, userIsPremium } from "~/util/users";
@@ -61,9 +62,9 @@ import {
   shareLinks as dShareLinks,
   getDb,
   makeSnowflake,
-} from "../store.server";
+} from "../.server/store";
 
-export const loader = async ({ request, context }: LoaderArgs) => {
+export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   const { settings: importedSettings } = zxParseQuery(request, {
     settings: jsonAsString(
       z.object({
@@ -76,7 +77,7 @@ export const loader = async ({ request, context }: LoaderArgs) => {
     ).optional(),
   });
   const user = await getUser(request, context, true);
-  const db = getDb(context.env.HYPERDRIVE.connectionString);
+  const db = getDb(context.env.HYPERDRIVE);
 
   const backups = (async () =>
     await db.query.backups.findMany({
@@ -170,7 +171,7 @@ export interface KVCustomBot {
   token: string | null;
 }
 
-export const action = async ({ request, context }: ActionArgs) => {
+export const action = async ({ request, context }: ActionFunctionArgs) => {
   const data = await zxParseForm(
     request,
     z.discriminatedUnion("action", [
@@ -205,7 +206,7 @@ export const action = async ({ request, context }: ActionArgs) => {
   );
   const userId = await getUserId(request, context, true);
 
-  const db = getDb(context.env.HYPERDRIVE.connectionString);
+  const db = getDb(context.env.HYPERDRIVE);
   switch (data.action) {
     case "DELETE_SHARE_LINK": {
       const link = await db.query.shareLinks.findFirst({
@@ -230,7 +231,7 @@ export const action = async ({ request, context }: ActionArgs) => {
         );
       }
 
-      const db = getDb(context.env.HYPERDRIVE.connectionString);
+      const db = getDb(context.env.HYPERDRIVE);
       const share = await db.query.shareLinks.findFirst({
         where: (shareLinks, { eq }) => eq(shareLinks.id, data.linkId),
         columns: {
@@ -306,7 +307,9 @@ export const action = async ({ request, context }: ActionArgs) => {
       return json({ action: data.action }, 201);
     }
     case "CREATE_BOT": {
-      if (String(data.applicationId) === context.env.DISCORD_CLIENT_ID) {
+      if (
+        String(data.applicationId) === context.env.DISCORD_CLIENT_ID
+      ) {
         throw json(
           { message: "Cannot create a bot with a blacklisted ID" },
           400,
@@ -320,7 +323,9 @@ export const action = async ({ request, context }: ActionArgs) => {
         );
       }
 
-      const rest = new REST().setToken(context.env.DISCORD_BOT_TOKEN);
+      const rest = new REST().setToken(
+        context.env.DISCORD_BOT_TOKEN,
+      );
       let application: RESTGetAPIApplicationRpcResult;
       try {
         application = (await rest.get(

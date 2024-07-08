@@ -2,7 +2,6 @@ import type { LinksFunction, MetaFunction } from "@remix-run/cloudflare";
 import { cssBundleHref } from "@remix-run/css-bundle";
 import {
   Links,
-  LiveReload,
   Meta,
   Outlet,
   Scripts,
@@ -13,11 +12,12 @@ import {
 import { ButtonStyle, ComponentType } from "discord-api-types/v10";
 import i18n from "i18next";
 import moment from "moment";
-import { Suspense, lazy, memo, useEffect } from "react";
+import { useEffect } from "react";
 import { initReactI18next } from "react-i18next";
-import styles from "../styles/app.css";
+import { ClientOnly } from "remix-utils/client-only";
+import styles from "../styles/app.css?url";
 import { Message } from "./components/preview/Message.client";
-import icons from "./styles/coolicons.css";
+import icons from "./styles/coolicons.css?url";
 import { resources } from "./util/i18n";
 import { getZodErrorMessage } from "./util/loader";
 
@@ -101,12 +101,6 @@ const changeLanguageEffect = () => {
   }
 };
 
-const MemoizedOutlet = memo(
-  lazy(async () => {
-    return { default: Outlet };
-  }),
-);
-
 export const FullscreenThrobber = () => (
   <div className="h-screen w-full flex">
     <img
@@ -117,8 +111,7 @@ export const FullscreenThrobber = () => (
   </div>
 );
 
-export default function App() {
-  useEffect(changeLanguageEffect, []);
+export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="dark" dir="ltr">
       <head>
@@ -129,15 +122,19 @@ export default function App() {
         <TailwindThemeScript />
       </head>
       <body className="bg-white text-black dark:bg-primary-600 dark:text-primary-230">
-        <Suspense fallback={<FullscreenThrobber />}>
-          <MemoizedOutlet />
-        </Suspense>
+        <ClientOnly fallback={<FullscreenThrobber />}>
+          {() => children}
+        </ClientOnly>
         <ScrollRestoration />
         <Scripts />
-        <LiveReload />
       </body>
     </html>
   );
+}
+
+export default function App() {
+  useEffect(changeLanguageEffect, []);
+  return <Outlet />;
 }
 
 export function ErrorBoundary() {

@@ -1,4 +1,5 @@
 import {
+  LoaderFunctionArgs,
   MetaDescriptor,
   MetaFunction,
   SerializeFrom,
@@ -8,25 +9,28 @@ import {
 import { useLoaderData } from "@remix-run/react";
 import { ButtonStyle } from "discord-api-types/v10";
 import { z } from "zod";
+import { getDb } from "~/.server/store";
 import { BRoutes, apiUrl } from "~/api/routing";
+import { ZodOEmbedData } from "~/api/v1/oembed";
 import { Button } from "~/components/Button";
 import { getEmbedText } from "~/components/editor/LinkEmbedEditor";
 import { Embed } from "~/components/preview/Embed";
 import { getYoutubeVideoParameters } from "~/components/preview/Gallery";
-import { getDb } from "~/store.server";
 import { LinkQueryData } from "~/types/QueryData";
-import { LoaderArgs } from "~/util/loader";
 import { copyText } from "~/util/text";
 import { zxParseParams } from "~/util/zod";
-import { ZodOEmbedData } from "../api/v1/oembed";
 import { linkEmbedToAPIEmbed } from "./link";
 
-export const loader = async ({ request, params, context }: LoaderArgs) => {
+export const loader = async ({
+  request,
+  params,
+  context,
+}: LoaderFunctionArgs) => {
   const { code } = zxParseParams(params, {
     code: z.string(),
   });
 
-  const db = getDb(context.env.HYPERDRIVE.connectionString);
+  const db = getDb(context.env.HYPERDRIVE);
   const linkBackup = await db.query.linkBackups.findFirst({
     where: (linkBackups, { eq }) => eq(linkBackups.code, code),
     columns: {

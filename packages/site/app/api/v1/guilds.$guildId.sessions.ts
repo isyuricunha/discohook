@@ -6,11 +6,10 @@ import {
   KVTokenPermissions,
   authorizeRequest,
   getTokenGuildPermissions,
-} from "~/session.server";
-import { LoaderArgs } from "~/util/loader";
+} from "~/.server/session";
 import { snowflakeAsString, zxParseParams, zxParseQuery } from "~/util/zod";
 
-export const loader = async ({ request, context, params }: LoaderArgs) => {
+export const loader = async ({ request, context, params }: LoaderFunctionArgs) => {
   const { guildId } = zxParseParams(params, {
     guildId: snowflakeAsString(),
   });
@@ -32,7 +31,7 @@ export const loader = async ({ request, context, params }: LoaderArgs) => {
     throw respond(json({ message: "Missing permissions" }, 403));
   }
 
-  const db = getDb(context.env.HYPERDRIVE.connectionString);
+  const db = getDb(context.env.HYPERDRIVE);
   const guildWithTokens = await db.query.discordGuilds.findFirst({
     where: (discordGuilds, { eq }) => eq(discordGuilds.id, guildId),
     columns: {},

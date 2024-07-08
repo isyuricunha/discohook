@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // @ts-check
 
-import { writeFile } from "node:fs/promises";
 import hljs from "highlight.js";
+import { writeFile } from "node:fs/promises";
 
 /** @typedef {import("highlight.js").Mode} Mode */
 
@@ -53,7 +53,7 @@ let code = `
 
 import type { HLJSApi } from "highlight.js";
 import hljs_ from "highlight.js";
-import "../../public/hljs.css";
+import "~/hljs.css?url";
 
 let hljs = hljs_;
 
